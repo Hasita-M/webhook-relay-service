@@ -1,5 +1,6 @@
 package com.codewithhasita.webrelayretryservice;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,8 +14,13 @@ public class WebRelayRetryServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(WebRelayRetryServiceApplication.class, args);
     }
+
     @Bean
-    CommandLineRunner seedTestReceiver(ReceiverRepository receiverRepository, UserRepository userRepository) {
+    CommandLineRunner seedTestReceiver(
+            ReceiverRepository receiverRepository,
+            UserRepository userRepository,
+            @Value("${receiver-api.base-url}") String receiverBaseUrl,
+            @Value("${receiver-api.path}") String receiverPath) {
         return args -> {
             if (userRepository.count() == 0) {
                 User u = new User();
@@ -25,7 +31,7 @@ public class WebRelayRetryServiceApplication {
                 u = userRepository.save(u);
 
                 Receiver r = new Receiver();
-                r.setDestinationURL("http://localhost:8080/receiver");
+                r.setDestinationURL(receiverBaseUrl + receiverPath);
                 r.setName("Test Receiver");
                 r.setSecretKey("placeholder-secret");
                 r.setUser(u);
