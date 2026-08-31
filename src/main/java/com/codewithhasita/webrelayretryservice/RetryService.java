@@ -37,7 +37,9 @@ public class RetryService {
         d.setAttemptedAt(LocalDateTime.now());
 
         try{
+            String signature = HmacUtil.sign(event.getPayload(), receiver.getSecretKey());
             ResponseEntity<Void> response = client.post().uri(receiver.getDestinationURL())
+                    .header("X-Webhook-Signature", signature)
                     .body(event.getPayload()).retrieve().toBodilessEntity();
             d.setStatusCode(response.getStatusCode().value());
             d.setSuccess(true);
