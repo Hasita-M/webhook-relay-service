@@ -6,11 +6,14 @@ This project is a webhook relay acting as an intermediary between senders and re
 Currently implemented:
 - Receives incoming webhook POSTs
 - Persists events to Postgres
-- Attempts delivery once, synchronously
+- Attempts delivery, with automatic retries on failure
+- Redis-backed retry queue with exponential backoff (2s, 4s...up to 5 attempts)
+- Full delivery history logged per attempt
 - Marks each event SUCCESS or FAILED
+- Deployed live on Render, Postgres on Neon, Redis on Upstash
 
 Planned:
 - HMAC signature verification
-- Redis-backed retry queue with exponential backoff
-- Idempotency handling for duplicate sends
+- Idempotency handling for duplicate incoming sends
 - Dashboard for delivery history
+- Facilitating multiple receivers
