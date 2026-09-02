@@ -11,9 +11,9 @@ Currently implemented:
 - Full delivery history logged per attempt
 - Marks each event SUCCESS or FAILED
 - Deployed live on Render, Postgres on Neon, Redis on Upstash
-
-Planned:
 - HMAC signature verification
 - Idempotency handling for duplicate incoming sends
+
+Planned:
 - Dashboard for delivery history
 - Facilitating multiple receivers

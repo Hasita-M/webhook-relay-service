@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface EventRepository extends JpaRepository<Event, Long> {
     @Query("SELECT e FROM Event e JOIN FETCH e.receiver WHERE e.id = :id")
     Optional<Event> findByIdWithReceiver(@Param("id") Long id);
+
+    Optional<Event> findByIdempotencyKey(String idempotencyKey);
 }
