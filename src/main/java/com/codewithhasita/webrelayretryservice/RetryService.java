@@ -1,5 +1,6 @@
 package com.codewithhasita.webrelayretryservice;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,9 @@ public class RetryService {
     private final RestClient client;
     private final StringRedisTemplate redisTemplate;
 
+    @Value("${app.encryption-key}")
+    private String encryptionKey;
+
     public RetryService(EventRepository eventRepository, DeliveryRepository deliveryRepository, StringRedisTemplate redisTemplate) {
         this.eventRepository = eventRepository;
         this.deliveryRepository = deliveryRepository;
@@ -37,7 +41,8 @@ public class RetryService {
         d.setAttemptedAt(LocalDateTime.now());
 
         try{
-            String signature = HmacUtil.sign(event.getPayload(), receiver.getSecretKey());
+            String plainSecret = EncryptionUtil.decrypt(receiver.getSecretKey(), encryptionKey);
+            String signature = HmacUtil.sign(event.getPayload(), plainSecret);
             ResponseEntity<Void> response = client.post().uri(receiver.getDestinationURL())
                     .header("X-Webhook-Signature", signature)
                     .body(event.getPayload()).retrieve().toBodilessEntity();

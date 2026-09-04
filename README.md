@@ -13,7 +13,7 @@ Currently implemented:
 - Deployed live on Render, Postgres on Neon, Redis on Upstash
 - HMAC signature verification
 - Idempotency handling for duplicate incoming sends
+- Facilitating multiple receivers
 
 Planned:
 - Dashboard for delivery history
-- Facilitating multiple receivers

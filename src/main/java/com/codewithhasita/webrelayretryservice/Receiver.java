@@ -17,11 +17,23 @@ public class Receiver {
 
     private String secretKey;
 
+    //user not required for creating receiver, handled by management token
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
+    @Column(name = "management_token", unique = true)
+    private String managementToken;
+
     public Receiver() {
+    }
+
+    public String getManagementToken() {
+        return managementToken;
+    }
+
+    public void setManagementToken(String managementToken) {
+        this.managementToken = managementToken;
     }
 
     public Long getReceiverId() {

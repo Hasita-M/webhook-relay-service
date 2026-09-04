@@ -25,6 +25,7 @@ public class Delivery {
 
     private boolean success;
 
+    @Column(columnDefinition = "TEXT")
     private String errorMessage;
 
     public Delivery() {
