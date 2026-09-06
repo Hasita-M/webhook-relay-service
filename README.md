@@ -22,9 +22,9 @@ Target receivers are small developer teams or startups and senders are their cus
 
 ## Try it yourself
 
-Set up your own integration on the live site, or test the relay directly:
+Set up your own integration on the live site, or test the relay directly (receiverId = 6 for test receiver):
 ```bash
-curl -X POST [your Render URL]/webhook/{receiverId} \
+curl -X POST https://webhook-relay-service.onrender.com/webhook/{receiverId} \
   -H "Content-Type: application/json" \
   -d '{"event":"test.event","data":"hello"}'
 ```
