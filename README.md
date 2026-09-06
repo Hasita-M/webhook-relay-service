@@ -1,17 +1,41 @@
 # Webhook Relay & Retry Service
-This project is a webhook relay acting as an intermediary between senders and receivers, reducing the risk of lost webhooks by retrying failed webhook attempts and noting them. Target receivers are small developer teams or startups and senders are their customers or partner integrations (e.g. payment service confirming a transaction). The service accepts incoming requests, verifies them via HMAC, stores them in Postgres and attempts delivery to the destination URL, retrying failed attempts via a Redis queue with exponential backoff while handling idempotency so duplicate sends are not double processed. Developers see a dashboard showing delivery history of successes, failures, and pending retries in a timeline view with filters, letting them debug their own endpoints. 
+A webhook relay that sits between senders and receivers, reducing the risk of lost
+deliveries by automatically retrying failed webhook attempts with exponential backoff.
 
-## Status
+**Live: https://webhook-relay-service.onrender.com**
+*(Note: Due to free-tier hosting on Render the first request may take up to a minute if the service was idle.)*
 
-Features implemented:
-- Receives incoming webhook POSTs
-- Persists events to Postgres
-- Attempts delivery, with automatic retries on failure
-- Redis-backed retry queue with exponential backoff (2s, 4s...up to 5 attempts)
-- Full delivery history logged per attempt
-- Marks each event SUCCESS or FAILED
-- Deployed live on Render, Postgres on Neon, Redis on Upstash
-- HMAC signature verification
-- Idempotency handling for duplicate incoming sends
-- Facilitating multiple receivers
-- Dashboard for delivery history
+## What it does
+Target receivers are small developer teams or startups and senders are their customers or partner integrations (e.g. payment service confirming a transaction). The service accepts incoming requests, stores them durably in Postgres and attempts delivery to a configured destination, retrying failed attempts via exponential backoff (2s, 4s, 8s,
+16s...), up to a configurable retry limit) via a Redis-backed queue.
+
+- **HMAC-SHA256 signature verification** on every delivery, so receivers can confirm
+  requests genuinely came from the relay and weren't tampered with in transit
+- **Idempotency handling** for duplicate incoming sends
+- **Secrets encrypted at rest** (AES-256/GCM) to securely store in database
+- **Multi-receiver support** - each integration gets its own webhook URL, secure
+    secret, and a private management token (no login required)
+- **Per-receiver customizability** - destination URL, max retry count (1-10), and a
+  **chaos mode** toggle that lets an integrator deliberately trigger simulated failures
+  against their own endpoint
+- **Full delivery timeline** - every attempt (success or failure) is logged and viewable in the UI
+
+## Try it yourself
+
+Set up your own integration on the live site, or test the relay directly:
+```bash
+curl -X POST [your Render URL]/webhook/{receiverId} \
+  -H "Content-Type: application/json" \
+  -d '{"event":"test.event","data":"hello"}'
+```
+
+## Architecture
+
+- **Spring Boot** (Java)
+- **PostgreSQL** (hosted on Neon)
+- **Redis** (hosted on Upstash)
+- Deployed via Docker on Render
+
+
+
+

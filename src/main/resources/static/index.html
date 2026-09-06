@@ -3,57 +3,316 @@
 <head>
     <title>Webhook Relay & Retry Service</title>
     <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
-        section { margin-bottom: 40px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
-        input { display: block; width: 100%; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
-        button { padding: 8px 16px; cursor: pointer; }
-        .result { margin-top: 15px; padding: 10px; background: #f4f4f4; word-break: break-all; }
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f5f7;
+            color: #1a1a1a;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 32px 20px 60px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .topbar .signature {
+            color: #888;
+            font-size: 14px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin: 0 0 4px;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-top: 0;
+        }
+
+        h3 {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .home-btn {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .home-btn:hover { background: #f0f0f0; }
+
+        .intro-steps {
+            color: #444;
+            line-height: 1.7;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-buttons button {
+            flex: 1;
+            min-width: 160px;
+            background: #007BA7;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .nav-buttons button:hover { background: #00648a; }
+
+        form input {
+            display: block;
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        form button, .card > button {
+            background: #007BA7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        form button:hover, .card > button:hover { background: #00648a; }
+
+        .result {
+            margin-top: 16px;
+            padding: 14px;
+            background: #f4f5f7;
+            border-radius: 10px;
+            word-break: break-word;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .field-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            font-size: 14px;
+        }
+        .field-row .field-label { color: #555; min-width: 130px; }
+        .field-row span { word-break: break-all; }
+        .field-row input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .edit-btn {
+            background: #eee;
+            border: none;
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .edit-btn:hover { background: #ddd; }
+
+        .chaos-pill {
+            display: inline-flex;
+            border: 2px solid #333;
+            border-radius: 24px;
+            overflow: hidden;
+            margin: 8px 0 20px;
+        }
+        .chaos-pill button {
+            padding: 8px 18px;
+            border: none;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #eee;
+        }
+        .chaos-pill span {
+            padding: 8px 14px;
+            background: #f4f5f7;
+            font-size: 13px;
+            font-weight: 700;
+            color: #555;
+        }
+
+        .event-card {
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+        .event-card .event-title { font-weight: 700; margin-bottom: 6px; }
+        .event-card ul { margin: 0; padding-left: 18px; font-size: 13px; color: #444; line-height: 1.6; }
+        .status-success { color: #1a8a3d; font-weight: 600; }
+        .status-failed { color: #c53030; font-weight: 600; }
     </style>
 </head>
 <body>
-<h1>Webhook Relay & Retry Service</h1>
 
-<section>
-    <h2>Create a Receiver</h2>
-    <form id="createForm">
-        <input type="text" id="name" placeholder="Receiver name" required>
-        <input type="text" id="destinationURL" placeholder="Destination URL" required>
-        <button type="submit">Create</button>
-    </form>
-    <div id="createResult" class="result" style="display:none;"></div>
-</section>
+<div id="homeScreen">
+    <div class="topbar">
+        <div></div>
+        <div class="signature">Hasita Mandaleeka</div>
+    </div>
+    <div class="card">
+        <h1>Webhook Relay & Retry Service</h1>
+        <p class="intro-steps">An easy and clean way to track and manage your APIs in 3 steps:</p>
+        <ol class="intro-steps">
+            <li>Set up an integration</li>
+            <li>Receive a magic token to manage that integration</li>
+            <li>View updates in timeline mode or chaos mode</li>
+        </ol>
+        <div class="nav-buttons">
+            <button onclick="showScreen('create')">Set up an integration</button>
+            <button onclick="seeTestIntegration()">See a test integration</button>
+            <button onclick="showScreen('view')">View an existing integration</button>
+        </div>
+    </div>
+</div>
 
-<section>
-    <h2>View a Receiver</h2>
-    <form id="viewForm">
-        <input type="text" id="token" placeholder="Management token" required>
-        <button type="submit">View</button>
-    </form>
-    <div id="viewResult" class="result" style="display:none;"></div>
-</section>
+<div id="createScreen" style="display:none;">
+    <div class="topbar">
+        <button class="home-btn" onclick="showScreen('home')">Home</button>
+        <div class="signature">Hasita Mandaleeka</div>
+    </div>
+    <div class="card">
+        <h2>Set Up an Integration</h2>
+        <form id="createForm">
+            <input type="text" id="name" placeholder="Receiver name" required>
+            <input type="text" id="destinationURL" placeholder="Destination URL" required>
+            <button type="submit">Create</button>
+        </form>
+        <div id="createResult" class="result" style="display:none;"></div>
+    </div>
+</div>
 
-<section id="managePanel" style="display:none;">
-    <h2 id="receiverName"></h2>
+<div id="viewScreen" style="display:none;">
+    <div class="topbar">
+        <button class="home-btn" onclick="showScreen('home')">Home</button>
+        <div class="signature">Hasita Mandaleeka</div>
+    </div>
+    <div class="card">
+        <h2>View an Existing Integration</h2>
+        <form id="viewForm">
+            <input type="text" id="token" placeholder="Management token" required>
+            <button type="submit">View</button>
+        </form>
+        <div id="viewResult" class="result" style="display:none;"></div>
+    </div>
+</div>
 
-    <p><strong>Destination URL:</strong> <span id="destUrl"></span></p>
-    <p><strong>Webhook URL:</strong> <span id="webhookUrlDisplay"></span></p>
-    <p><strong>Secret Key:</strong> <span id="secretKeyDisplay"></span></p>
+<div id="manageScreen" style="display:none;">
+    <div class="topbar">
+        <button class="home-btn" onclick="showScreen('home')">Home</button>
+        <div class="signature">Hasita Mandaleeka</div>
+    </div>
+    <div class="card" id="managePanel">
+        <h2 id="receiverName"></h2>
 
-    <label>
-        <input type="checkbox" id="chaosToggle"> Chaos Mode (simulate failures)
-    </label>
-    <br>
-    <label>
-        Max Retries:
-        <input type="number" id="maxRetriesInput" min="1" max="10" style="width:60px;">
-    </label>
-    <button id="saveSettings">Save Settings</button>
+        <div class="field-row">
+            <span class="field-label">Destination URL:</span>
+            <span id="destUrl"></span>
+            <input type="text" id="destUrlInput" style="display:none; width:250px;">
+            <button class="edit-btn" id="destUrlEditBtn" onclick="toggleEditDestUrl()">Edit</button>
+        </div>
 
-    <h3>Event History</h3>
-    <div id="eventsList"></div>
-</section>
+        <div class="field-row">
+            <span class="field-label">Webhook URL:</span>
+            <span id="webhookUrlDisplay"></span>
+        </div>
+
+        <div class="field-row">
+            <span class="field-label">Secret Key:</span>
+            <span id="secretKeyDisplay"></span>
+        </div>
+
+        <div class="field-row">
+            <span class="field-label">Max Retries:</span>
+            <span id="maxRetriesDisplay"></span>
+            <input type="number" id="maxRetriesInput" min="1" max="10" style="display:none; width:60px;">
+            <button class="edit-btn" id="maxRetriesEditBtn" onclick="toggleEditMaxRetries()">Edit</button>
+        </div>
+
+        <div class="chaos-pill">
+            <button id="chaosOffBtn" onclick="setChaosMode(false)">OFF</button>
+            <span>CHAOS MODE</span>
+            <button id="chaosOnBtn" onclick="setChaosMode(true)">ON</button>
+        </div>
+
+        <h3>Event History</h3>
+        <div id="eventsList"></div>
+    </div>
+</div>
 
 <script>
+    function showScreen(name) {
+        document.getElementById('homeScreen').style.display = (name === 'home') ? 'block' : 'none';
+        document.getElementById('createScreen').style.display = (name === 'create') ? 'block' : 'none';
+        document.getElementById('viewScreen').style.display = (name === 'view') ? 'block' : 'none';
+        document.getElementById('manageScreen').style.display = (name === 'manage') ? 'block' : 'none';
+
+        if (name !== 'manage') {
+            window.location.hash = (name === 'home') ? '' : name;
+        }
+    }
+
+    let currentToken = null;
+
+    async function loadManageScreen(token) {
+        currentToken = token;
+
+        const response = await fetch('/manage/' + token);
+        if (!response.ok) {
+            showScreen('view');
+            document.getElementById('viewResult').style.display = 'block';
+            document.getElementById('viewResult').innerHTML = '<p>No receiver found for that token.</p>';
+            return;
+        }
+
+        const data = await response.json();
+        renderManagePanel(data);
+        loadEvents(token);
+        showScreen('manage');
+        window.location.hash = 'manage/' + token;
+    }
+
+    function seeTestIntegration() {
+        loadManageScreen('f54f6e16-4740-47ab-8380-22bf0b25cff1');
+    }
+
     document.getElementById('createForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
@@ -67,57 +326,28 @@
         });
 
         const data = await response.json();
+        const token = data.managementUrl.split('/').pop();
 
         const resultDiv = document.getElementById('createResult');
         resultDiv.style.display = 'block';
         resultDiv.innerHTML = `
         <p><strong>Webhook URL (give to sender):</strong><br>${data.webhookUrl}</p>
-        <p><strong>Management URL (save this!):</strong><br>${data.managementUrl}</p>
-      `;
+        <p><strong>Your Management Token (save this!):</strong><br>${token}</p>
+        <p>Use "View an Existing Integration" on the home screen and paste this token in to manage your integration anytime.</p>
+    `;
     });
 
-    let currentToken = null;
-
-    document.getElementById('viewForm').addEventListener('submit', async function(e) {
+    document.getElementById('viewForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const token = document.getElementById('token').value;
-        currentToken = token;
-
-        const response = await fetch('/manage/' + token);
-        if (!response.ok) {
-            document.getElementById('managePanel').style.display = 'none';
-            document.getElementById('viewResult').style.display = 'block';
-            document.getElementById('viewResult').innerHTML = '<p>No receiver found for that token.</p>';
-            return;
-        }
-
-        document.getElementById('viewResult').style.display = 'none';
-
-        const data = await response.json();
-        renderManagePanel(data);
-        loadEvents(token);
+        loadManageScreen(token);
     });
 
-    function renderManagePanel(data) {
-        document.getElementById('managePanel').style.display = 'block';
-        document.getElementById('receiverName').innerText = data.name;
-        document.getElementById('destUrl').innerText = data.destinationUrl;
-        document.getElementById('webhookUrlDisplay').innerText = data.webhookUrl;
-        document.getElementById('secretKeyDisplay').innerText = data.secretKey;
-        document.getElementById('chaosToggle').checked = data.chaosMode;
-        document.getElementById('maxRetriesInput').value = data.maxRetries;
-    }
-
-    document.getElementById('saveSettings').addEventListener('click', async function() {
-        const body = {
-            chaosMode: document.getElementById('chaosToggle').checked,
-            maxRetries: parseInt(document.getElementById('maxRetriesInput').value)
-        };
-
+    async function setChaosMode(value) {
         const response = await fetch('/manage/' + currentToken, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
+            body: JSON.stringify({ chaosMode: value })
         });
 
         if (!response.ok) {
@@ -128,8 +358,101 @@
 
         const data = await response.json();
         renderManagePanel(data);
-        alert('Settings saved!');
-    });
+    }
+
+    function renderManagePanel(data) {
+        document.getElementById('managePanel').style.display = 'block';
+        document.getElementById('receiverName').innerText = data.name;
+        document.getElementById('destUrl').innerText = data.destinationUrl;
+        document.getElementById('webhookUrlDisplay').innerText = data.webhookUrl;
+        document.getElementById('secretKeyDisplay').innerText = data.secretKey;
+
+        document.getElementById('destUrl').style.display = 'inline';
+        document.getElementById('destUrlInput').style.display = 'none';
+        document.getElementById('destUrlEditBtn').innerText = 'Edit';
+        document.getElementById('maxRetriesDisplay').innerText = data.maxRetries;
+        document.getElementById('maxRetriesDisplay').style.display = 'inline';
+        document.getElementById('maxRetriesInput').style.display = 'none';
+        document.getElementById('maxRetriesEditBtn').innerText = 'Edit';
+
+        const offBtn = document.getElementById('chaosOffBtn');
+        const onBtn = document.getElementById('chaosOnBtn');
+        if (data.chaosMode) {
+            onBtn.style.background = '#ff4444';
+            onBtn.style.color = 'white';
+            offBtn.style.background = '#eee';
+            offBtn.style.color = 'black';
+        } else {
+            offBtn.style.background = '#2ea043';
+            offBtn.style.color = 'white';
+            onBtn.style.background = '#eee';
+            onBtn.style.color = 'black';
+        }
+    }
+
+    function toggleEditDestUrl() {
+        const span = document.getElementById('destUrl');
+        const input = document.getElementById('destUrlInput');
+        const btn = document.getElementById('destUrlEditBtn');
+
+        if (input.style.display === 'none') {
+            input.value = span.innerText;
+            span.style.display = 'none';
+            input.style.display = 'inline';
+            btn.innerText = 'Save';
+        } else {
+            saveDestUrl(input.value);
+        }
+    }
+
+    async function saveDestUrl(newValue) {
+        const response = await fetch('/manage/' + currentToken, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ destinationUrl: newValue })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            alert('Error: ' + errorText);
+            return;
+        }
+
+        const data = await response.json();
+        renderManagePanel(data);
+    }
+
+    function toggleEditMaxRetries() {
+        const span = document.getElementById('maxRetriesDisplay');
+        const input = document.getElementById('maxRetriesInput');
+        const btn = document.getElementById('maxRetriesEditBtn');
+
+        if (input.style.display === 'none') {
+            input.value = span.innerText;
+            span.style.display = 'none';
+            input.style.display = 'inline';
+            btn.innerText = 'Save';
+        } else {
+            saveMaxRetries(parseInt(input.value));
+        }
+    }
+
+    async function saveMaxRetries(newValue) {
+        const response = await fetch('/manage/' + currentToken, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ maxRetries: newValue })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            alert('Error: ' + errorText);
+            return;
+        }
+
+        const data = await response.json();
+        renderManagePanel(data);
+    }
 
     async function loadEvents(token) {
         const response = await fetch('/manage/' + token + '/events');
@@ -140,26 +463,42 @@
 
         for (const event of events) {
             const eventDiv = document.createElement('div');
-            eventDiv.style.border = '1px solid #ddd';
-            eventDiv.style.padding = '10px';
-            eventDiv.style.marginBottom = '10px';
+            eventDiv.className = 'event-card';
 
             let attemptsHtml = '';
             for (const attempt of event.attempts) {
+                const resultClass = attempt.success ? 'status-success' : 'status-failed';
                 const resultText = attempt.success ? 'SUCCESS' : 'FAILED';
-                attemptsHtml += `<li>Attempt ${attempt.attemptNumber} — ${attempt.attemptedAt} — ${resultText}` +
+                attemptsHtml += `<li>Attempt ${attempt.attemptNumber} — ${attempt.attemptedAt} — <span class="${resultClass}">${resultText}</span>` +
                     (attempt.statusCode ? ` (status ${attempt.statusCode})` : '') +
                     (attempt.errorMessage ? ` — ${attempt.errorMessage}` : '') +
                     `</li>`;
             }
 
+            const eventStatusClass = event.status === 'SUCCESS' ? 'status-success' : (event.status === 'FAILED' ? 'status-failed' : '');
+
             eventDiv.innerHTML = `
-      <p><strong>Event #${event.eventId}</strong> — ${event.status} — ${event.attemptCount} attempt(s)</p>
+      <div class="event-title">Event #${event.eventId} — <span class="${eventStatusClass}">${event.status}</span> — ${event.attemptCount} attempt(s)</div>
       <ul>${attemptsHtml}</ul>
     `;
             eventsListDiv.appendChild(eventDiv);
         }
     }
+
+    function restoreFromHash() {
+        const hash = window.location.hash;
+        if (hash.startsWith('#manage/')) {
+            loadManageScreen(hash.substring('#manage/'.length));
+        } else if (hash === '#create') {
+            showScreen('create');
+        } else if (hash === '#view') {
+            showScreen('view');
+        } else {
+            showScreen('home');
+        }
+    }
+
+    restoreFromHash();
 </script>
 </body>
 </html>
