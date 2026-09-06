@@ -32,6 +32,27 @@
     <div id="viewResult" class="result" style="display:none;"></div>
 </section>
 
+<section id="managePanel" style="display:none;">
+    <h2 id="receiverName"></h2>
+
+    <p><strong>Destination URL:</strong> <span id="destUrl"></span></p>
+    <p><strong>Webhook URL:</strong> <span id="webhookUrlDisplay"></span></p>
+    <p><strong>Secret Key:</strong> <span id="secretKeyDisplay"></span></p>
+
+    <label>
+        <input type="checkbox" id="chaosToggle"> Chaos Mode (simulate failures)
+    </label>
+    <br>
+    <label>
+        Max Retries:
+        <input type="number" id="maxRetriesInput" min="1" max="10" style="width:60px;">
+    </label>
+    <button id="saveSettings">Save Settings</button>
+
+    <h3>Event History</h3>
+    <div id="eventsList"></div>
+</section>
+
 <script>
     document.getElementById('createForm').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -55,28 +76,90 @@
       `;
     });
 
+    let currentToken = null;
+
     document.getElementById('viewForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-
         const token = document.getElementById('token').value;
-        const response = await fetch('/manage/' + token);
+        currentToken = token;
 
-        const resultDiv = document.getElementById('viewResult');
-        resultDiv.style.display = 'block';
+        const response = await fetch('/manage/' + token);
+        if (!response.ok) {
+            document.getElementById('managePanel').style.display = 'none';
+            document.getElementById('viewResult').style.display = 'block';
+            document.getElementById('viewResult').innerHTML = '<p>No receiver found for that token.</p>';
+            return;
+        }
+
+        document.getElementById('viewResult').style.display = 'none';
+
+        const data = await response.json();
+        renderManagePanel(data);
+        loadEvents(token);
+    });
+
+    function renderManagePanel(data) {
+        document.getElementById('managePanel').style.display = 'block';
+        document.getElementById('receiverName').innerText = data.name;
+        document.getElementById('destUrl').innerText = data.destinationUrl;
+        document.getElementById('webhookUrlDisplay').innerText = data.webhookUrl;
+        document.getElementById('secretKeyDisplay').innerText = data.secretKey;
+        document.getElementById('chaosToggle').checked = data.chaosMode;
+        document.getElementById('maxRetriesInput').value = data.maxRetries;
+    }
+
+    document.getElementById('saveSettings').addEventListener('click', async function() {
+        const body = {
+            chaosMode: document.getElementById('chaosToggle').checked,
+            maxRetries: parseInt(document.getElementById('maxRetriesInput').value)
+        };
+
+        const response = await fetch('/manage/' + currentToken, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
 
         if (!response.ok) {
-            resultDiv.innerHTML = '<p>No receiver found for this token.</p>';
+            const errorText = await response.text();
+            alert('Error: ' + errorText);
             return;
         }
 
         const data = await response.json();
-        resultDiv.innerHTML = `
-        <p><strong>Name:</strong> ${data.name}</p>
-        <p><strong>Destination URL:</strong> ${data.destinationUrl}</p>
-        <p><strong>Webhook URL:</strong> ${data.webhookUrl}</p>
-        <p><strong>Secret Key:</strong> ${data.secretKey}</p>
-      `;
+        renderManagePanel(data);
+        alert('Settings saved!');
     });
+
+    async function loadEvents(token) {
+        const response = await fetch('/manage/' + token + '/events');
+        const events = await response.json();
+
+        const eventsListDiv = document.getElementById('eventsList');
+        eventsListDiv.innerHTML = '';
+
+        for (const event of events) {
+            const eventDiv = document.createElement('div');
+            eventDiv.style.border = '1px solid #ddd';
+            eventDiv.style.padding = '10px';
+            eventDiv.style.marginBottom = '10px';
+
+            let attemptsHtml = '';
+            for (const attempt of event.attempts) {
+                const resultText = attempt.success ? 'SUCCESS' : 'FAILED';
+                attemptsHtml += `<li>Attempt ${attempt.attemptNumber} — ${attempt.attemptedAt} — ${resultText}` +
+                    (attempt.statusCode ? ` (status ${attempt.statusCode})` : '') +
+                    (attempt.errorMessage ? ` — ${attempt.errorMessage}` : '') +
+                    `</li>`;
+            }
+
+            eventDiv.innerHTML = `
+      <p><strong>Event #${event.eventId}</strong> — ${event.status} — ${event.attemptCount} attempt(s)</p>
+      <ul>${attemptsHtml}</ul>
+    `;
+            eventsListDiv.appendChild(eventDiv);
+        }
+    }
 </script>
 </body>
 </html>

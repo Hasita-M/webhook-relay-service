@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 
 @Service
 public class RetryService {
-    private static final int MAX_ATTEMPTS = 5;
     private static final long BASE_DELAY_SECONDS = 2;
     private static final long MAX_DELAY_SECONDS = 60;
     private static final String QUEUE_KEY = "retry_queue";
@@ -41,6 +40,10 @@ public class RetryService {
         d.setAttemptedAt(LocalDateTime.now());
 
         try{
+            if (receiver.isChaosMode()) {
+                throw new RuntimeException("Chaos mode: simulated failure");
+            }
+
             String plainSecret = EncryptionUtil.decrypt(receiver.getSecretKey(), encryptionKey);
             String signature = HmacUtil.sign(event.getPayload(), plainSecret);
             ResponseEntity<Void> response = client.post().uri(receiver.getDestinationURL())
@@ -55,7 +58,7 @@ public class RetryService {
             d.setSuccess(false);
             d.setErrorMessage(ex.getMessage());
 
-            if(attemptNumber >= MAX_ATTEMPTS){
+            if(attemptNumber >= receiver.getMaxRetries()){
                 event.setStatus(Status.FAILED);
                 redisTemplate.opsForZSet().remove(QUEUE_KEY, event.getId().toString());
             } else {

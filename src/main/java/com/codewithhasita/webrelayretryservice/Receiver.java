@@ -25,7 +25,29 @@ public class Receiver {
     @Column(name = "management_token", unique = true)
     private String managementToken;
 
+    @Column(name = "chaos_mode")
+    private boolean chaosMode = false;
+
+    @Column(name = "max_retries")
+    private int maxRetries = 5;
+
     public Receiver() {
+    }
+
+    public boolean isChaosMode() {
+        return chaosMode;
+    }
+
+    public void setChaosMode(boolean chaosMode) {
+        this.chaosMode = chaosMode;
+    }
+
+    public int getMaxRetries() {
+        return maxRetries;
+    }
+
+    public void setMaxRetries(int maxRetries) {
+        this.maxRetries = maxRetries;
     }
 
     public String getManagementToken() {

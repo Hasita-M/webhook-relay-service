@@ -3,7 +3,7 @@ This project is a webhook relay acting as an intermediary between senders and re
 
 ## Status
 
-Currently implemented:
+Features implemented:
 - Receives incoming webhook POSTs
 - Persists events to Postgres
 - Attempts delivery, with automatic retries on failure
@@ -14,6 +14,4 @@ Currently implemented:
 - HMAC signature verification
 - Idempotency handling for duplicate incoming sends
 - Facilitating multiple receivers
-
-Planned:
 - Dashboard for delivery history
