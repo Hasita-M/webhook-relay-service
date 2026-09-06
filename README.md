@@ -5,6 +5,10 @@ deliveries by automatically retrying failed webhook attempts with exponential ba
 **Live: https://webhook-relay-service.onrender.com**
 *(Note: Due to free-tier hosting on Render the first request may take up to a minute if the service was idle.)*
 
+## Demo
+
+[![Watch the demo](assets/demo_thumbnail.png)](https://youtu.be/lOf1KnabQS0)
+
 ## What it does
 Target receivers are small developer teams or startups and senders are their customers or partner integrations (e.g. payment service confirming a transaction). The service accepts incoming requests, stores them durably in Postgres and attempts delivery to a configured destination, retrying failed attempts via exponential backoff (2s, 4s, 8s,
 16s...), up to a configurable retry limit) via a Redis-backed queue.
