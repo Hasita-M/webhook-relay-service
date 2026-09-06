@@ -291,7 +291,7 @@
 
     let currentToken = null;
 
-    async function loadManageScreen(token) {
+    async function loadManageScreen(token, isTestMode = false) {
         currentToken = token;
 
         const response = await fetch('/manage/' + token);
@@ -303,14 +303,14 @@
         }
 
         const data = await response.json();
-        renderManagePanel(data);
+        renderManagePanel(data, isTestMode);
         loadEvents(token);
         showScreen('manage');
         window.location.hash = 'manage/' + token;
     }
 
     function seeTestIntegration() {
-        loadManageScreen('89a72a6e-6c9a-4375-8f7c-c66024909ded');
+        loadManageScreen('89a72a6e-6c9a-4375-8f7c-c66024909ded', true);
     }
 
     document.getElementById('createForm').addEventListener('submit', async function(e) {
@@ -360,7 +360,7 @@
         renderManagePanel(data);
     }
 
-    function renderManagePanel(data) {
+    function renderManagePanel(data, isTestMode = false) {
         document.getElementById('managePanel').style.display = 'block';
         document.getElementById('receiverName').innerText = data.name;
         document.getElementById('destUrl').innerText = data.destinationUrl;
@@ -388,6 +388,11 @@
             onBtn.style.background = '#eee';
             onBtn.style.color = 'black';
         }
+
+        document.getElementById('destUrlEditBtn').style.display = isTestMode ? 'none' : 'inline-block';
+        document.getElementById('maxRetriesEditBtn').style.display = isTestMode ? 'none' : 'inline-block';
+        offBtn.disabled = isTestMode;
+        onBtn.disabled = isTestMode;
     }
 
     function toggleEditDestUrl() {

@@ -31,6 +31,17 @@ public class Receiver {
     @Column(name = "max_retries")
     private int maxRetries = 5;
 
+    @Column(name = "is_test_receiver")
+    private boolean isTestReceiver = false;
+
+    public boolean isTestReceiver() {
+        return isTestReceiver;
+    }
+
+    public void setTestReceiver(boolean isTestReceiver) {
+        this.isTestReceiver = isTestReceiver;
+    }
+
     public Receiver() {
     }
 

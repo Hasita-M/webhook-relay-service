@@ -62,6 +62,10 @@ public class ReceiverManagementController {
         Receiver receiver = receiverRepository.findByManagementToken(token)
                 .orElseThrow(() -> new ReceiverNotFoundException("No receiver found for this management link"));
 
+        if (receiver.isTestReceiver()) {
+            throw new ReceiverValidationException("This is a shared test receiver and cannot be edited.");
+        }
+
         if (request.getName() != null) {
             receiver.setName(request.getName());
         }
