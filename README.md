@@ -16,7 +16,7 @@ Target receivers are small developer teams or startups and senders are their cus
 - **Multi-receiver support** - each integration gets its own webhook URL, secure
     secret, and a private management token (no login required)
 - **Per-receiver customizability** - destination URL, max retry count (1-10), and a
-  **chaos mode** toggle that lets an integrator deliberately trigger simulated failures
+  chaos mode toggle that lets an integrator deliberately trigger simulated failures
   against their own endpoint
 - **Full delivery timeline** - every attempt (success or failure) is logged and viewable in the UI
 
